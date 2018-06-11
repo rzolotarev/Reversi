@@ -46,15 +46,12 @@ namespace Services.Boards
             for (x = (byte)(point.X + 1); x < _board.GetRows; x++)
             {
                 var color = _board.GetColor(x, point.Y);
-                if (color == Color.Red)                                    
-                    return localBestPosition;                
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                  
-                        break;                    
-                }
+
+                if (IsEmpty(color))
+                    break;
+
+                if (!TryToScore(color, localBestPosition))
+                    return localBestPosition;
             }
 
             localBestPosition.X = x;
@@ -78,15 +75,12 @@ namespace Services.Boards
             for (x = (byte)(point.X - 1); x >= 0; x--)
             {
                 var color = _board.GetColor(x, point.Y);
-                if (color == Color.Red)
+
+                if (IsEmpty(color))
+                    break;
+
+                if (!TryToScore(color, localBestPosition))
                     return localBestPosition;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                  
-                        break;                                           
-                }
             }
 
             localBestPosition.X = x;
@@ -110,15 +104,12 @@ namespace Services.Boards
             for (y = (byte)(point.Y - 1); y >= 0; y--)
             {
                 var color = _board.GetColor(point.X, y);
-                if (color == Color.Red)
+
+                if (IsEmpty(color))
+                    break;
+
+                if (!TryToScore(color, localBestPosition))
                     return localBestPosition;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                                                                 
-                        break;                                             
-                }
             }
 
             localBestPosition.X = point.X;
@@ -142,15 +133,12 @@ namespace Services.Boards
             for (y = (byte)(point.Y + 1); y < _board.GetColumns; y++)
             {
                 var color = _board.GetColor(point.X, y);
-                if (color == Color.Red)
+
+                if (IsEmpty(color))
+                    break;
+
+                if (!TryToScore(color, localBestPosition))
                     return localBestPosition;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                 
-                        break;                                         
-                }
             }
 
             localBestPosition.X = point.X;
@@ -175,15 +163,13 @@ namespace Services.Boards
             while (y >= 0 && x >= 0)
             {
                 var color = _board.GetColor(x, y);
-                if (color == Color.Red)
+
+                if (IsEmpty(color))
+                    break;
+
+                if (!TryToScore(color, localBestPosition))
                     return localBestPosition;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else
-                        break;
-                }
+
                 x--;
                 y--;
             }
@@ -208,15 +194,13 @@ namespace Services.Boards
             while (y < _board.GetColumns && x >= 0)
             {
                 var color = _board.GetColor(x, y);
-                if (color == Color.Red)
+
+                if (IsEmpty(color))
+                    break;
+
+                if (!TryToScore(color, localBestPosition))
                     return localBestPosition;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                    
-                        break;                    
-                }
+
                 x--;
                 y++;
             }
@@ -241,15 +225,12 @@ namespace Services.Boards
             while (y >= 0 && x < _board.GetRows)
             {
                 var color = _board.GetColor(x, y);
-                if (color == Color.Red)
+                if (IsEmpty(color))
+                    break;
+
+                if (!TryToScore(color, localBestPosition))
                     return localBestPosition;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                                          
-                        break;                    
-                }
+
                 x++;
                 y--;
             }
@@ -274,15 +255,13 @@ namespace Services.Boards
             while (y < _board.GetColumns && x < _board.GetRows)
             {
                 var color = _board.GetColor(x, y);
-                if (color == Color.Red)
+
+                if (IsEmpty(color))
+                    break;
+
+                if (!TryToScore(color, localBestPosition))
                     return localBestPosition;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                                           
-                        break;                    
-                }
+                
                 x++;
                 y++;
             }
@@ -293,6 +272,20 @@ namespace Services.Boards
             _forwardWalker.OnlyToLeft(localBestPosition);
 
             return localBestPosition;
+        }
+
+        private bool IsEmpty(Color color)
+        {
+            return color == Color.Empty;                
+        }
+
+        private bool TryToScore(Color color, Point localBestPosition)
+        {
+            if (color != Color.Black)
+                return false;
+
+            localBestPosition.Scores++;
+            return true;
         }
     }
 }

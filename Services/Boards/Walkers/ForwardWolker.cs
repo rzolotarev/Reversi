@@ -27,16 +27,8 @@ namespace Services.Boards.Walkers
             for (x = (byte)(localBestPosition.X + 1); x < _board.GetRows; x++)
             {
                 var color = _board.GetColor(x, localBestPosition.Y);
-                if (color == Color.Red)
+                if (!TryToScore(color, localBestPosition))
                     return;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                  
-                        break;
-                    
-                }
             }           
         }
 
@@ -48,16 +40,8 @@ namespace Services.Boards.Walkers
             for (x = (byte)(localBestPosition.X - 1); x >= 0; x--)
             {
                 var color = _board.GetColor(x, localBestPosition.Y);
-                if (color == Color.Red)
+                if (!TryToScore(color, localBestPosition))
                     return;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                
-                        break;
-                    
-                }
             }
         }
 
@@ -69,16 +53,8 @@ namespace Services.Boards.Walkers
             for (byte y = (byte)(localBestPosition.Y - 1); y >= 0; y--)
             {
                 var color = _board.GetColor(localBestPosition.X, y);
-                if (color == Color.Red)
+                if (!TryToScore(color, localBestPosition))
                     return;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                    
-                        break;
-                    
-                }
             }
         }
 
@@ -90,16 +66,8 @@ namespace Services.Boards.Walkers
             for (byte y = (byte)(localBestPosition.Y + 1); y < _board.GetColumns; y++)
             {
                 var color = _board.GetColor(localBestPosition.X, y);
-                if (color == Color.Red)
-                    break;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else               
-                        break;
-                    
-                }
+                if (!TryToScore(color, localBestPosition))
+                    return;
             }
         }   
         
@@ -114,15 +82,9 @@ namespace Services.Boards.Walkers
             while (y >= 0 && x >= 0)
             {
                 var color = _board.GetColor(x, y);
-                if (color == Color.Red)
+                if (!TryToScore(color, localBestPosition))
                     return;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                    
-                        break;                    
-                }
+
                 x--;
                 y--;
             }            
@@ -138,15 +100,9 @@ namespace Services.Boards.Walkers
             while (y < _board.GetColumns && x >= 0)
             {
                 var color = _board.GetColor(x, y);
-                if (color == Color.Red)
+                if (!TryToScore(color, localBestPosition))
                     return;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                    
-                        break;                    
-                }
+
                 x--;
                 y++;
             }
@@ -162,16 +118,9 @@ namespace Services.Boards.Walkers
             while (y >= 0 && x < _board.GetRows)
             {
                 var color = _board.GetColor(x, y);
-                if (color == Color.Red)
+                if (!TryToScore(color, localBestPosition))
                     return;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                    
-                        break;
-                    
-                }
+
                 x++;
                 y--;
             }
@@ -187,19 +136,20 @@ namespace Services.Boards.Walkers
             while (y < _board.GetColumns && x < _board.GetRows)
             {
                 var color = _board.GetColor(x, y);
-                if (color == Color.Red)
+                if (!TryToScore(color, localBestPosition))
                     return;
-                else
-                {
-                    if (color == Color.Black)
-                        localBestPosition.Scores++;
-                    else                    
-                        break;
-                    
-                }
-                x++;
-                y++;
+
+                x++; y++;
             }
+        }
+        
+        private bool TryToScore(Color color, Point localBestPosition)
+        {
+            if (color != Color.Black)
+                return false;
+
+            localBestPosition.Scores++;                            
+            return true;
         }
     }
 }
