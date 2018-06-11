@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Reversi.Tests
 {
     [TestFixture]
-    public class FirstTest
+    public class Test
     {
         [Test]
         public void ResultShouldReturnE1()

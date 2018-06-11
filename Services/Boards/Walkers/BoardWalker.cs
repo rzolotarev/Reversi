@@ -22,47 +22,32 @@ namespace Services.Boards
         }
 
         public Point BestStep(Point currentPoint)
-        {            
-            var downBestPosition = new Point(0, 0, 0);
-            GoDown(currentPoint, downBestPosition);
-
-            var upBestPosition = new Point(0, 0, 0);
-            GoUp(currentPoint, upBestPosition);
-
-            var leftBestPosition = new Point(0, 0, 0);
-            GoLeft(currentPoint, leftBestPosition);
-
-            var rightBestPosition = new Point(0, 0, 0);
-            GoRight(currentPoint, rightBestPosition);
-
-            var upAndLeftBestPosition = new Point(0, 0, 0);
-            GoUpAndLeft(currentPoint, upAndLeftBestPosition);
-
-            var downAndLeftBestPosition = new Point(0, 0, 0);
-            GoDownAndLeft(currentPoint, downAndLeftBestPosition);
-
-            var upAndRightBestPosition = new Point(0, 0, 0);
-            GoUpAndRight(currentPoint, upAndRightBestPosition);
-
-            var downAndRightBestPosition = new Point(0, 0, 0);
-            GoDownAndRight(currentPoint, downAndRightBestPosition);
-
-            return new List<Point>() { downBestPosition, upBestPosition, leftBestPosition, rightBestPosition,
-                upAndLeftBestPosition, upAndRightBestPosition, downAndLeftBestPosition, downAndRightBestPosition}
+        {
+            return new List<Point>() {
+                GoDown(currentPoint),
+                GoUp(currentPoint),
+                GoLeft(currentPoint),
+                GoRight(currentPoint),
+                GoUpAndLeft(currentPoint),
+                GoDownAndLeft(currentPoint),
+                GoUpAndRight(currentPoint),
+                GoDownAndRight(currentPoint),
+            }
             .OrderByDescending(x => x.Scores).First();            
         }
 
-        public void GoDown(Point point, Point localBestPosition)
+        public Point GoDown(Point point)
         {
+            var localBestPosition = new Point(0,0,0);
             if (point.X == _board.GetRows - 1)
-                return;
+                return localBestPosition;
 
             byte x = 0;
             for (x = (byte)(point.X + 1); x < _board.GetRows; x++)
             {
                 var color = _board.GetColor(x, point.Y);
                 if (color == Color.Red)                                    
-                    return;                
+                    return localBestPosition;                
                 else
                 {
                     if (color == Color.Black)
@@ -78,18 +63,23 @@ namespace Services.Boards
             _forwardWalker.OnlyToRight(localBestPosition);
             _forwardWalker.OnlyGoUpAndLeft(localBestPosition);
             _forwardWalker.OnlyGoUpAndRight(localBestPosition);
+
+            return localBestPosition;
         }
 
-        public void GoUp(Point point, Point localBestPosition)
+        public Point GoUp(Point point)
         {
+            var localBestPosition = new Point(0, 0, 0);
+
             if (point.X == 0)
-                return;
+                return localBestPosition;
+
             byte x;
             for (x = (byte)(point.X - 1); x >= 0; x--)
             {
                 var color = _board.GetColor(x, point.Y);
                 if (color == Color.Red)
-                    return;
+                    return localBestPosition;
                 else
                 {
                     if (color == Color.Black)
@@ -105,19 +95,23 @@ namespace Services.Boards
             _forwardWalker.OnlyToRight(localBestPosition);
             _forwardWalker.OnlyGoDownAndLeft(localBestPosition);
             _forwardWalker.OnlyGoDownAndRight(localBestPosition);
+
+            return localBestPosition;
         }
 
-        public void GoLeft(Point point, Point localBestPosition)
+        public Point GoLeft(Point point)
         {
+            var localBestPosition = new Point(0, 0, 0);
+
             if (point.Y == 0)
-                return;
+                return localBestPosition;
 
             byte y;
             for (y = (byte)(point.Y - 1); y >= 0; y--)
             {
                 var color = _board.GetColor(point.X, y);
                 if (color == Color.Red)
-                    return;
+                    return localBestPosition;
                 else
                 {
                     if (color == Color.Black)
@@ -133,19 +127,23 @@ namespace Services.Boards
             _forwardWalker.OnlyGoDown(localBestPosition);
             _forwardWalker.OnlyGoDownAndLeft(localBestPosition);
             _forwardWalker.OnlyGoDownAndRight(localBestPosition);
+
+            return localBestPosition;
         }
 
-        public void GoRight(Point point, Point localBestPosition)
+        public Point GoRight(Point point)
         {
+            var localBestPosition = new Point(0, 0, 0);
+
             if (point.Y == _board.GetColumns - 1)
-                return;
+                return localBestPosition;
 
             byte y;
             for (y = (byte)(point.Y + 1); y < _board.GetColumns; y++)
             {
                 var color = _board.GetColor(point.X, y);
                 if (color == Color.Red)
-                    break;
+                    return localBestPosition;
                 else
                 {
                     if (color == Color.Black)
@@ -161,12 +159,16 @@ namespace Services.Boards
             _forwardWalker.OnlyGoDown(localBestPosition);
             _forwardWalker.OnlyGoDownAndLeft(localBestPosition);
             _forwardWalker.OnlyGoUpAndLeft(localBestPosition);
+
+            return localBestPosition;
         }
 
-        public void GoUpAndLeft(Point point, Point localBestPosition)
+        public Point GoUpAndLeft(Point point)
         {
+            var localBestPosition = new Point(0,0,0);
+
             if (point.Y == 0 || point.X == 0)
-                return;            
+                return localBestPosition;            
 
             byte y = (byte)(point.Y - 1);
             byte x = (byte)(point.X - 1);
@@ -174,7 +176,7 @@ namespace Services.Boards
             {
                 var color = _board.GetColor(x, y);
                 if (color == Color.Red)
-                    return;
+                    return localBestPosition;
                 else
                 {
                     if (color == Color.Black)
@@ -189,13 +191,17 @@ namespace Services.Boards
             localBestPosition.X = x;
             localBestPosition.Y = y;
             _forwardWalker.OnlyToRight(localBestPosition);
-            _forwardWalker.OnlyGoDown(localBestPosition);            
+            _forwardWalker.OnlyGoDown(localBestPosition);
+
+            return localBestPosition;
         }
 
-        public void GoUpAndRight(Point point, Point localBestPosition)
+        public Point GoUpAndRight(Point point)
         {
+            var localBestPosition = new Point(0, 0, 0);
+
             if (point.Y == _board.GetColumns - 1 || point.X == 0)
-                return;            
+                return localBestPosition;            
 
             byte y = (byte)(point.Y + 1);
             byte x = (byte)(point.X - 1);
@@ -203,7 +209,7 @@ namespace Services.Boards
             {
                 var color = _board.GetColor(x, y);
                 if (color == Color.Red)
-                    return;
+                    return localBestPosition;
                 else
                 {
                     if (color == Color.Black)
@@ -219,12 +225,16 @@ namespace Services.Boards
             localBestPosition.Y = y;
             _forwardWalker.OnlyToLeft(localBestPosition);
             _forwardWalker.OnlyGoDown(localBestPosition);
+
+            return localBestPosition;
         }
 
-        public void GoDownAndLeft(Point point, Point localBestPosition)
+        public Point GoDownAndLeft(Point point)
         {
+            var localBestPosition = new Point(0,0,0);
+
             if (point.Y == 0 || point.X == _board.GetRows - 1)
-                return;            
+                return localBestPosition;            
 
             byte y = (byte)(point.Y - 1);
             byte x = (byte)(point.X + 1);
@@ -232,7 +242,7 @@ namespace Services.Boards
             {
                 var color = _board.GetColor(x, y);
                 if (color == Color.Red)
-                    return;
+                    return localBestPosition;
                 else
                 {
                     if (color == Color.Black)
@@ -248,12 +258,16 @@ namespace Services.Boards
             localBestPosition.Y = y;
             _forwardWalker.OnlyGoUp(localBestPosition);
             _forwardWalker.OnlyToRight(localBestPosition);
+
+            return localBestPosition;
         }
 
-        public void GoDownAndRight(Point point, Point localBestPosition)
+        public Point GoDownAndRight(Point point)
         {
+            var localBestPosition = new Point(0, 0, 0);
+
             if (point.Y == _board.GetColumns - 1 || point.X == _board.GetRows - 1)
-                return;            
+                return localBestPosition;            
 
             byte y = (byte)(point.Y + 1);
             byte x = (byte)(point.X + 1);
@@ -261,7 +275,7 @@ namespace Services.Boards
             {
                 var color = _board.GetColor(x, y);
                 if (color == Color.Red)
-                    return;
+                    return localBestPosition;
                 else
                 {
                     if (color == Color.Black)
@@ -277,6 +291,8 @@ namespace Services.Boards
             localBestPosition.Y = y;
             _forwardWalker.OnlyGoUp(localBestPosition);
             _forwardWalker.OnlyToLeft(localBestPosition);
+
+            return localBestPosition;
         }
     }
 }
