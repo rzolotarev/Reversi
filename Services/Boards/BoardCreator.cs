@@ -32,7 +32,7 @@ namespace Services.Boards
                 throw new Exception("Please make sure that you set a correct board format");
 
             var lines = board.Split('\n');
-            var firstLine = lines.First();
+            var firstLine = lines.First().Trim();
             var dimensions = firstLine.Split(' ');
 
             if (!Byte.TryParse(dimensions[0], out byte width))
@@ -57,7 +57,7 @@ namespace Services.Boards
                     if (_colorMapping.TryGetValue(splittedRow[col], out Color value))
                         boardObject.SetColor(row, col, value);
                     else
-                        throw new Exception($"Symbol {splittedRow[col]} was not parsed");
+                        throw new Exception($"Symbol {splittedRow[col]} was not parsed because of unknown symbol");
                 }
             }
 

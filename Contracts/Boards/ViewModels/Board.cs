@@ -31,5 +31,9 @@ namespace Contracts.Boards
         {
             return _board[x, y];
         }
+
+        public byte GetRows => _height;        
+
+        public byte GetColumns => _width;        
     }
 }

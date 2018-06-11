@@ -42,8 +42,10 @@
   <ItemGroup>
     <Compile Include="Boards\Contracts\IBoardCreator.cs" />
     <Compile Include="Boards\Contracts\IBoardDimensionValidator.cs" />
+    <Compile Include="Boards\Contracts\IStateReceiver.cs" />
     <Compile Include="Boards\ViewModels\Board.cs" />
     <Compile Include="Boards\ViewModels\Color.cs" />
+    <Compile Include="Boards\ViewModels\Point.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
