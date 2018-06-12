@@ -14,10 +14,14 @@ namespace Services.Boards
     {
         private List<Point> myPoints { get; set; }
         private Board board { get; set; }
+        private List<Point> visitedPoints { get; set; }
+
 
         public StateReceiver(Board initializedBoard)
         {
-            board = initializedBoard;            
+            board = initializedBoard;
+            visitedPoints = new List<Point>();
+
             FindMyPoints();            
         }
 
@@ -34,7 +38,7 @@ namespace Services.Boards
 
         public string GetBestPosition()
         {            
-            var boardWalker = new BoardWalker(board);
+            var boardWalker = new BoardWalker(board, visitedPoints);
 
             var maxScores = 0;
             var bestPosition = "";

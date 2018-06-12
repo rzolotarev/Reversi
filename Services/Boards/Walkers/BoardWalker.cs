@@ -14,10 +14,13 @@ namespace Services.Boards
     {
         private readonly Board _board;
         private readonly AdditionalDisksCounter _forwardWalker;
+        private List<Point> visitedPoints;
+        public int counter = 0;
 
-        public BoardWalker(Board board)
-        {        
+        public BoardWalker(Board board, List<Point> visitedPoints)
+        {                    
             _board = board;
+            this.visitedPoints = visitedPoints;
             _forwardWalker = new AdditionalDisksCounter(_board);
         }
 
@@ -38,250 +41,282 @@ namespace Services.Boards
 
         public Point GoDown(Point point)
         {
-            var localBestPosition = new Point(0,0,0);
+            var localPosition = new Point(0,0,0);
             if (point.X == _board.GetRows - 1)
-                return localBestPosition;
+                return localPosition;
 
             byte x = 0;
             for (x = (byte)(point.X + 1); x < _board.GetRows; x++)
             {
+                if (IsAlreadyPassed(x, point.Y, out Point visitedPosition))
+                    return visitedPosition;
+
                 var color = _board.GetColor(x, point.Y);
 
                 if (IsEmpty(color))
                     break;
 
-                if (!IsMyColor(color, localBestPosition))
-                    return localBestPosition;
+                if (!IsMyColor(color, localPosition))
+                    return localPosition;
 
-                localBestPosition.Scores++;
+                localPosition.Scores++;
             }
 
-            localBestPosition.X = x;
-            localBestPosition.Y = point.Y;
+            localPosition.X = x;
+            localPosition.Y = point.Y;
 
             var except = new List<Action<Point>>() { _forwardWalker.OnlyGoUp };
-            _forwardWalker.Count(localBestPosition, except);            
+            _forwardWalker.Count(localPosition, except);
 
-            return localBestPosition;
+            visitedPoints.Add(localPosition);
+            return localPosition;
         }
 
         public Point GoUp(Point point)
         {
-            var localBestPosition = new Point(0, 0, 0);
+            var localPosition = new Point(0, 0, 0);
 
             if (point.X == 0)
-                return localBestPosition;
+                return localPosition;
 
             byte x;
             for (x = (byte)(point.X - 1); x >= 0; x--)
             {
+                if (IsAlreadyPassed(x, point.Y, out Point visitedPosition))
+                    return visitedPosition;
+
                 var color = _board.GetColor(x, point.Y);
 
                 if (IsEmpty(color))
                     break;
 
-                if (!IsMyColor(color, localBestPosition))
-                    return localBestPosition;
+                if (!IsMyColor(color, localPosition))
+                    return localPosition;
 
-                localBestPosition.Scores++;
+                localPosition.Scores++;
             }
 
-            localBestPosition.X = x;
-            localBestPosition.Y = point.Y;
+            localPosition.X = x;
+            localPosition.Y = point.Y;
             var except = new List<Action<Point>>() { _forwardWalker.OnlyGoDown };
-            _forwardWalker.Count(localBestPosition, except);            
+            _forwardWalker.Count(localPosition, except);
 
-            return localBestPosition;
+            visitedPoints.Add(localPosition);
+            return localPosition;
         }
 
         public Point GoLeft(Point point)
         {
-            var localBestPosition = new Point(0, 0, 0);
+            var localPosition = new Point(0, 0, 0);
 
             if (point.Y == 0)
-                return localBestPosition;
+                return localPosition;
 
             byte y;
             for (y = (byte)(point.Y - 1); y >= 0; y--)
             {
+                if (IsAlreadyPassed(point.X, y, out Point visitedPosition))
+                    return visitedPosition;
+
                 var color = _board.GetColor(point.X, y);
 
                 if (IsEmpty(color))
                     break;
 
-                if (!IsMyColor(color, localBestPosition))
-                    return localBestPosition;
+                if (!IsMyColor(color, localPosition))
+                    return localPosition;
 
-                localBestPosition.Scores++;
+                localPosition.Scores++;
             }
 
-            localBestPosition.X = point.X;
-            localBestPosition.Y = y;
+            localPosition.X = point.X;
+            localPosition.Y = y;
 
             var except = new List<Action<Point>>() { _forwardWalker.OnlyGoRight };
-            _forwardWalker.Count(localBestPosition, except);
+            _forwardWalker.Count(localPosition, except);
 
-            return localBestPosition;
+            visitedPoints.Add(localPosition);
+            return localPosition;
         }
 
         public Point GoRight(Point point)
         {
-            var localBestPosition = new Point(0, 0, 0);
+            var localPosition = new Point(0, 0, 0);
 
             if (point.Y == _board.GetColumns - 1)
-                return localBestPosition;
+                return localPosition;
 
             byte y;
             for (y = (byte)(point.Y + 1); y < _board.GetColumns; y++)
             {
+                if (IsAlreadyPassed(point.X, y, out Point visitedPosition))
+                    return visitedPosition;
+
                 var color = _board.GetColor(point.X, y);
 
                 if (IsEmpty(color))
                     break;
 
-                if (!IsMyColor(color, localBestPosition))
-                    return localBestPosition;
+                if (!IsMyColor(color, localPosition))
+                    return localPosition;
 
-                localBestPosition.Scores++;
+                localPosition.Scores++;
             }
 
-            localBestPosition.X = point.X;
-            localBestPosition.Y = y;
+            localPosition.X = point.X;
+            localPosition.Y = y;
             var except = new List<Action<Point>>() { _forwardWalker.OnlyGoLeft };
-            _forwardWalker.Count(localBestPosition, except);
+            _forwardWalker.Count(localPosition, except);
 
-            return localBestPosition;
+            visitedPoints.Add(localPosition);
+            return localPosition;
         }
 
         public Point GoUpAndLeft(Point point)
         {
-            var localBestPosition = new Point(0,0,0);
+            var localPosition = new Point(0,0,0);
 
             if (point.Y == 0 || point.X == 0)
-                return localBestPosition;            
+                return localPosition;            
 
             byte y = (byte)(point.Y - 1);
             byte x = (byte)(point.X - 1);
             while (y >= 0 && x >= 0)
             {
+                if (IsAlreadyPassed(x, y, out Point visitedPosition))
+                    return visitedPosition;
+
                 var color = _board.GetColor(x, y);
 
                 if (IsEmpty(color))
                     break;
 
-                if (!IsMyColor(color, localBestPosition))
-                    return localBestPosition;
+                if (!IsMyColor(color, localPosition))
+                    return localPosition;
 
-                localBestPosition.Scores++;
+                localPosition.Scores++;
 
                 x--;
                 y--;
             }
 
-            localBestPosition.X = x;
-            localBestPosition.Y = y;
+            localPosition.X = x;
+            localPosition.Y = y;
             var except = new List<Action<Point>>() { _forwardWalker.OnlyGoDownAndRight };
-            _forwardWalker.Count(localBestPosition, except);
+            _forwardWalker.Count(localPosition, except);
 
-            return localBestPosition;
+            visitedPoints.Add(localPosition);
+            return localPosition;
         }
 
         public Point GoUpAndRight(Point point)
         {
-            var localBestPosition = new Point(0, 0, 0);
+            var localPosition = new Point(0, 0, 0);
 
             if (point.Y == _board.GetColumns - 1 || point.X == 0)
-                return localBestPosition;            
+                return localPosition;            
 
             byte y = (byte)(point.Y + 1);
             byte x = (byte)(point.X - 1);
             while (y < _board.GetColumns && x >= 0)
             {
+                if (IsAlreadyPassed(x, y, out Point visitedPosition))
+                    return visitedPosition;
+
                 var color = _board.GetColor(x, y);
 
                 if (IsEmpty(color))
                     break;
 
-                if (!IsMyColor(color, localBestPosition))
-                    return localBestPosition;
+                if (!IsMyColor(color, localPosition))
+                    return localPosition;
 
-                localBestPosition.Scores++;
+                localPosition.Scores++;
 
                 x--;
                 y++;
             }
 
-            localBestPosition.X = x;
-            localBestPosition.Y = y;
+            localPosition.X = x;
+            localPosition.Y = y;
             var except = new List<Action<Point>>() { _forwardWalker.OnlyGoDownAndLeft };
-            _forwardWalker.Count(localBestPosition, except);
-
-            return localBestPosition;
+            _forwardWalker.Count(localPosition, except);
+            
+            visitedPoints.Add(localPosition);
+            return localPosition;
         }
 
         public Point GoDownAndLeft(Point point)
         {
-            var localBestPosition = new Point(0,0,0);
+            var localPosition = new Point(0,0,0);
 
             if (point.Y == 0 || point.X == _board.GetRows - 1)
-                return localBestPosition;            
+                return localPosition;            
 
             byte y = (byte)(point.Y - 1);
             byte x = (byte)(point.X + 1);
             while (y >= 0 && x < _board.GetRows)
             {
+                if (IsAlreadyPassed(x, y, out Point visitedPosition))
+                    return visitedPosition;
+
                 var color = _board.GetColor(x, y);
                 if (IsEmpty(color))
                     break;
 
-                if (!IsMyColor(color, localBestPosition))
-                    return localBestPosition;
+                if (!IsMyColor(color, localPosition))
+                    return localPosition;
 
-                localBestPosition.Scores++;
+                localPosition.Scores++;
 
                 x++;
                 y--;
             }
 
-            localBestPosition.X = x;
-            localBestPosition.Y = y;
+            localPosition.X = x;
+            localPosition.Y = y;
             var except = new List<Action<Point>>() { _forwardWalker.OnlyGoUpAndRight };
-            _forwardWalker.Count(localBestPosition, except);
+            _forwardWalker.Count(localPosition, except);
 
-            return localBestPosition;
+            visitedPoints.Add(localPosition);
+            return localPosition;
         }
 
         public Point GoDownAndRight(Point point)
         {
-            var localBestPosition = new Point(0, 0, 0);
+            var localPosition = new Point(0, 0, 0);
 
             if (point.Y == _board.GetColumns - 1 || point.X == _board.GetRows - 1)
-                return localBestPosition;            
+                return localPosition;            
 
             byte y = (byte)(point.Y + 1);
             byte x = (byte)(point.X + 1);
             while (y < _board.GetColumns && x < _board.GetRows)
             {
+                if (IsAlreadyPassed(x, y, out Point visitedPosition))
+                    return visitedPosition;
+
                 var color = _board.GetColor(x, y);
 
                 if (IsEmpty(color))
                     break;
 
-                if (!IsMyColor(color, localBestPosition))
-                    return localBestPosition;
+                if (!IsMyColor(color, localPosition))
+                    return localPosition;
 
-                localBestPosition.Scores++;
+                localPosition.Scores++;
 
                 x++;
                 y++;
             }
 
-            localBestPosition.X = x;
-            localBestPosition.Y = y;
+            localPosition.X = x;
+            localPosition.Y = y;
             var except = new List<Action<Point>>() { _forwardWalker.OnlyGoUpAndLeft };
-            _forwardWalker.Count(localBestPosition, except);
+            _forwardWalker.Count(localPosition, except);
 
-            return localBestPosition;
+            visitedPoints.Add(localPosition);
+            return localPosition;
         }
 
         private bool IsEmpty(Color color)
@@ -297,6 +332,16 @@ namespace Services.Boards
                 return false;
             }
             
+            return true;
+        }
+
+        private bool IsAlreadyPassed(byte x, byte y, out Point position)
+        {
+            position = visitedPoints.FirstOrDefault(p => p.X == x && p.Y == y);
+            if (position == null)
+                return false;
+
+            counter++;
             return true;
         }
     }
