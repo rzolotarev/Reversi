@@ -13,12 +13,12 @@ namespace Services.Boards
     public class BoardWalker
     {
         private readonly Board _board;
-        private readonly ForwardWolker _forwardWalker;
+        private readonly AdditionalDisksCounter _forwardWalker;
 
         public BoardWalker(Board board)
         {        
             _board = board;
-            _forwardWalker = new ForwardWolker(_board);
+            _forwardWalker = new AdditionalDisksCounter(_board);
         }
 
         public Point BestStep(Point currentPoint)
@@ -50,16 +50,17 @@ namespace Services.Boards
                 if (IsEmpty(color))
                     break;
 
-                if (!TryToScore(color, localBestPosition))
+                if (!IsMyColor(color, localBestPosition))
                     return localBestPosition;
+
+                localBestPosition.Scores++;
             }
 
             localBestPosition.X = x;
             localBestPosition.Y = point.Y;
-            _forwardWalker.OnlyToLeft(localBestPosition);
-            _forwardWalker.OnlyToRight(localBestPosition);
-            _forwardWalker.OnlyGoUpAndLeft(localBestPosition);
-            _forwardWalker.OnlyGoUpAndRight(localBestPosition);
+
+            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoUp };
+            _forwardWalker.Count(localBestPosition, except);            
 
             return localBestPosition;
         }
@@ -79,16 +80,16 @@ namespace Services.Boards
                 if (IsEmpty(color))
                     break;
 
-                if (!TryToScore(color, localBestPosition))
+                if (!IsMyColor(color, localBestPosition))
                     return localBestPosition;
+
+                localBestPosition.Scores++;
             }
 
             localBestPosition.X = x;
             localBestPosition.Y = point.Y;
-            _forwardWalker.OnlyToLeft(localBestPosition);
-            _forwardWalker.OnlyToRight(localBestPosition);
-            _forwardWalker.OnlyGoDownAndLeft(localBestPosition);
-            _forwardWalker.OnlyGoDownAndRight(localBestPosition);
+            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoDown };
+            _forwardWalker.Count(localBestPosition, except);            
 
             return localBestPosition;
         }
@@ -108,16 +109,17 @@ namespace Services.Boards
                 if (IsEmpty(color))
                     break;
 
-                if (!TryToScore(color, localBestPosition))
+                if (!IsMyColor(color, localBestPosition))
                     return localBestPosition;
+
+                localBestPosition.Scores++;
             }
 
             localBestPosition.X = point.X;
             localBestPosition.Y = y;
-            _forwardWalker.OnlyGoUp(localBestPosition);
-            _forwardWalker.OnlyGoDown(localBestPosition);
-            _forwardWalker.OnlyGoDownAndLeft(localBestPosition);
-            _forwardWalker.OnlyGoDownAndRight(localBestPosition);
+
+            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoRight };
+            _forwardWalker.Count(localBestPosition, except);
 
             return localBestPosition;
         }
@@ -137,16 +139,16 @@ namespace Services.Boards
                 if (IsEmpty(color))
                     break;
 
-                if (!TryToScore(color, localBestPosition))
+                if (!IsMyColor(color, localBestPosition))
                     return localBestPosition;
+
+                localBestPosition.Scores++;
             }
 
             localBestPosition.X = point.X;
             localBestPosition.Y = y;
-            _forwardWalker.OnlyGoUp(localBestPosition);
-            _forwardWalker.OnlyGoDown(localBestPosition);
-            _forwardWalker.OnlyGoDownAndLeft(localBestPosition);
-            _forwardWalker.OnlyGoUpAndLeft(localBestPosition);
+            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoLeft };
+            _forwardWalker.Count(localBestPosition, except);
 
             return localBestPosition;
         }
@@ -167,8 +169,10 @@ namespace Services.Boards
                 if (IsEmpty(color))
                     break;
 
-                if (!TryToScore(color, localBestPosition))
+                if (!IsMyColor(color, localBestPosition))
                     return localBestPosition;
+
+                localBestPosition.Scores++;
 
                 x--;
                 y--;
@@ -176,8 +180,8 @@ namespace Services.Boards
 
             localBestPosition.X = x;
             localBestPosition.Y = y;
-            _forwardWalker.OnlyToRight(localBestPosition);
-            _forwardWalker.OnlyGoDown(localBestPosition);
+            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoDownAndRight };
+            _forwardWalker.Count(localBestPosition, except);
 
             return localBestPosition;
         }
@@ -198,8 +202,10 @@ namespace Services.Boards
                 if (IsEmpty(color))
                     break;
 
-                if (!TryToScore(color, localBestPosition))
+                if (!IsMyColor(color, localBestPosition))
                     return localBestPosition;
+
+                localBestPosition.Scores++;
 
                 x--;
                 y++;
@@ -207,8 +213,8 @@ namespace Services.Boards
 
             localBestPosition.X = x;
             localBestPosition.Y = y;
-            _forwardWalker.OnlyToLeft(localBestPosition);
-            _forwardWalker.OnlyGoDown(localBestPosition);
+            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoDownAndLeft };
+            _forwardWalker.Count(localBestPosition, except);
 
             return localBestPosition;
         }
@@ -228,8 +234,10 @@ namespace Services.Boards
                 if (IsEmpty(color))
                     break;
 
-                if (!TryToScore(color, localBestPosition))
+                if (!IsMyColor(color, localBestPosition))
                     return localBestPosition;
+
+                localBestPosition.Scores++;
 
                 x++;
                 y--;
@@ -237,8 +245,8 @@ namespace Services.Boards
 
             localBestPosition.X = x;
             localBestPosition.Y = y;
-            _forwardWalker.OnlyGoUp(localBestPosition);
-            _forwardWalker.OnlyToRight(localBestPosition);
+            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoUpAndRight };
+            _forwardWalker.Count(localBestPosition, except);
 
             return localBestPosition;
         }
@@ -259,17 +267,19 @@ namespace Services.Boards
                 if (IsEmpty(color))
                     break;
 
-                if (!TryToScore(color, localBestPosition))
+                if (!IsMyColor(color, localBestPosition))
                     return localBestPosition;
-                
+
+                localBestPosition.Scores++;
+
                 x++;
                 y++;
             }
 
             localBestPosition.X = x;
             localBestPosition.Y = y;
-            _forwardWalker.OnlyGoUp(localBestPosition);
-            _forwardWalker.OnlyToLeft(localBestPosition);
+            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoUpAndLeft };
+            _forwardWalker.Count(localBestPosition, except);
 
             return localBestPosition;
         }
@@ -279,12 +289,14 @@ namespace Services.Boards
             return color == Color.Empty;                
         }
 
-        private bool TryToScore(Color color, Point localBestPosition)
+        private bool IsMyColor(Color color, Point localBestPosition)
         {
-            if (color != Color.Black)
+            if (color == Color.Red)
+            {
+                localBestPosition.Scores = 0;
                 return false;
-
-            localBestPosition.Scores++;
+            }
+            
             return true;
         }
     }

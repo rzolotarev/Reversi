@@ -44,7 +44,7 @@
     <Compile Include="Boards\BoardDimensionValidator.cs" />
     <Compile Include="Boards\Walkers\BoardWalker.cs" />
     <Compile Include="Boards\StateReceiver.cs" />
-    <Compile Include="Boards\Walkers\ForwardWolker.cs" />
+    <Compile Include="Boards\Walkers\AdditionalDisksCounter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Solutions\Solution.cs" />
   </ItemGroup>
