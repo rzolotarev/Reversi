@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Boards\BoardCreator.cs" />
     <Compile Include="Boards\BoardDimensionValidator.cs" />
+    <Compile Include="Boards\Utils\BoardUtils.cs" />
     <Compile Include="Boards\Walkers\BoardWalker.cs" />
     <Compile Include="Boards\StateReceiver.cs" />
     <Compile Include="Boards\Walkers\AdditionalDisksCounter.cs" />

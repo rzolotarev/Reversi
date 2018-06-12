@@ -1,6 +1,7 @@
 ﻿using Contracts.Board.ViewModels;
 using Contracts.Boards;
 using Contracts.Boards.ViewModels;
+using Services.Boards.Utils;
 using Services.Boards.Walkers;
 using System;
 using System.Collections.Generic;
@@ -13,15 +14,15 @@ namespace Services.Boards
     public class BoardWalker
     {
         private readonly Board _board;
-        private readonly AdditionalDisksCounter _forwardWalker;
-        private List<Point> visitedPoints;
-        public int counter = 0;
+        private readonly AdditionalDisksCounter _additionalDisksCounter;        
+
+        private List<Point> visitedPoints;        
 
         public BoardWalker(Board board, List<Point> visitedPoints)
         {                    
             _board = board;
             this.visitedPoints = visitedPoints;
-            _forwardWalker = new AdditionalDisksCounter(_board);
+            _additionalDisksCounter = new AdditionalDisksCounter(_board);            
         }
 
         public Point BestStep(Point currentPoint)
@@ -48,16 +49,17 @@ namespace Services.Boards
             byte x = 0;
             for (x = (byte)(point.X + 1); x < _board.GetRows; x++)
             {
-                if (IsAlreadyPassed(x, point.Y, out Point visitedPosition))
-                    return visitedPosition;
+                if (IsAlreadyVisited(x, point.Y, out Point visitedPosition))
+                    return visitedPosition;                
 
-                var color = _board.GetColor(x, point.Y);
-
-                if (IsEmpty(color))
+                if (BoardUtils.IsEmptyTile(x, point.Y))
                     break;
 
-                if (!IsMyColor(color, localPosition))
+                if (BoardUtils.IsMyColor(x, point.Y))
+                {
+                    localPosition.Scores = 0;
                     return localPosition;
+                }
 
                 localPosition.Scores++;
             }
@@ -65,8 +67,8 @@ namespace Services.Boards
             localPosition.X = x;
             localPosition.Y = point.Y;
 
-            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoUp };
-            _forwardWalker.Count(localPosition, except);
+            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoUp };
+            _additionalDisksCounter.Count(localPosition, except);
 
             visitedPoints.Add(localPosition);
             return localPosition;
@@ -82,24 +84,25 @@ namespace Services.Boards
             byte x;
             for (x = (byte)(point.X - 1); x >= 0; x--)
             {
-                if (IsAlreadyPassed(x, point.Y, out Point visitedPosition))
-                    return visitedPosition;
+                if (IsAlreadyVisited(x, point.Y, out Point visitedPosition))
+                    return visitedPosition;                
 
-                var color = _board.GetColor(x, point.Y);
-
-                if (IsEmpty(color))
+                if (BoardUtils.IsEmptyTile(x, point.Y))
                     break;
 
-                if (!IsMyColor(color, localPosition))
+                if (BoardUtils.IsMyColor(x, point.Y))
+                {
+                    localPosition.Scores = 0;
                     return localPosition;
+                }
 
                 localPosition.Scores++;
             }
 
             localPosition.X = x;
             localPosition.Y = point.Y;
-            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoDown };
-            _forwardWalker.Count(localPosition, except);
+            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoDown };
+            _additionalDisksCounter.Count(localPosition, except);
 
             visitedPoints.Add(localPosition);
             return localPosition;
@@ -115,16 +118,17 @@ namespace Services.Boards
             byte y;
             for (y = (byte)(point.Y - 1); y >= 0; y--)
             {
-                if (IsAlreadyPassed(point.X, y, out Point visitedPosition))
-                    return visitedPosition;
+                if (IsAlreadyVisited(point.X, y, out Point visitedPosition))
+                    return visitedPosition;                
 
-                var color = _board.GetColor(point.X, y);
-
-                if (IsEmpty(color))
+                if (BoardUtils.IsEmptyTile(point.X, y))
                     break;
 
-                if (!IsMyColor(color, localPosition))
+                if (BoardUtils.IsMyColor(point.X, y))
+                {
+                    localPosition.Scores = 0;
                     return localPosition;
+                }
 
                 localPosition.Scores++;
             }
@@ -132,8 +136,8 @@ namespace Services.Boards
             localPosition.X = point.X;
             localPosition.Y = y;
 
-            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoRight };
-            _forwardWalker.Count(localPosition, except);
+            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoRight };
+            _additionalDisksCounter.Count(localPosition, except);
 
             visitedPoints.Add(localPosition);
             return localPosition;
@@ -149,24 +153,25 @@ namespace Services.Boards
             byte y;
             for (y = (byte)(point.Y + 1); y < _board.GetColumns; y++)
             {
-                if (IsAlreadyPassed(point.X, y, out Point visitedPosition))
-                    return visitedPosition;
+                if (IsAlreadyVisited(point.X, y, out Point visitedPosition))
+                    return visitedPosition;                
 
-                var color = _board.GetColor(point.X, y);
-
-                if (IsEmpty(color))
+                if (BoardUtils.IsEmptyTile(point.X, y))
                     break;
 
-                if (!IsMyColor(color, localPosition))
+                if (BoardUtils.IsMyColor(point.X, y))
+                {
+                    localPosition.Scores = 0;
                     return localPosition;
+                }
 
                 localPosition.Scores++;
             }
 
             localPosition.X = point.X;
             localPosition.Y = y;
-            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoLeft };
-            _forwardWalker.Count(localPosition, except);
+            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoLeft };
+            _additionalDisksCounter.Count(localPosition, except);
 
             visitedPoints.Add(localPosition);
             return localPosition;
@@ -183,16 +188,17 @@ namespace Services.Boards
             byte x = (byte)(point.X - 1);
             while (y >= 0 && x >= 0)
             {
-                if (IsAlreadyPassed(x, y, out Point visitedPosition))
-                    return visitedPosition;
+                if (IsAlreadyVisited(x, y, out Point visitedPosition))
+                    return visitedPosition;                
 
-                var color = _board.GetColor(x, y);
-
-                if (IsEmpty(color))
+                if (BoardUtils.IsEmptyTile(x, y))
                     break;
 
-                if (!IsMyColor(color, localPosition))
+                if (BoardUtils.IsMyColor(x, y))
+                {
+                    localPosition.Scores = 0;
                     return localPosition;
+                }
 
                 localPosition.Scores++;
 
@@ -202,8 +208,8 @@ namespace Services.Boards
 
             localPosition.X = x;
             localPosition.Y = y;
-            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoDownAndRight };
-            _forwardWalker.Count(localPosition, except);
+            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoDownAndRight };
+            _additionalDisksCounter.Count(localPosition, except);
 
             visitedPoints.Add(localPosition);
             return localPosition;
@@ -220,16 +226,17 @@ namespace Services.Boards
             byte x = (byte)(point.X - 1);
             while (y < _board.GetColumns && x >= 0)
             {
-                if (IsAlreadyPassed(x, y, out Point visitedPosition))
-                    return visitedPosition;
+                if (IsAlreadyVisited(x, y, out Point visitedPosition))
+                    return visitedPosition;                
 
-                var color = _board.GetColor(x, y);
-
-                if (IsEmpty(color))
+                if (BoardUtils.IsEmptyTile(x, y))
                     break;
 
-                if (!IsMyColor(color, localPosition))
+                if (BoardUtils.IsMyColor(x, y))
+                {
+                    localPosition.Scores = 0;
                     return localPosition;
+                }
 
                 localPosition.Scores++;
 
@@ -239,8 +246,8 @@ namespace Services.Boards
 
             localPosition.X = x;
             localPosition.Y = y;
-            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoDownAndLeft };
-            _forwardWalker.Count(localPosition, except);
+            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoDownAndLeft };
+            _additionalDisksCounter.Count(localPosition, except);
             
             visitedPoints.Add(localPosition);
             return localPosition;
@@ -257,15 +264,17 @@ namespace Services.Boards
             byte x = (byte)(point.X + 1);
             while (y >= 0 && x < _board.GetRows)
             {
-                if (IsAlreadyPassed(x, y, out Point visitedPosition))
+                if (IsAlreadyVisited(x, y, out Point visitedPosition))
                     return visitedPosition;
-
-                var color = _board.GetColor(x, y);
-                if (IsEmpty(color))
+                
+                if (BoardUtils.IsEmptyTile(x, y))
                     break;
 
-                if (!IsMyColor(color, localPosition))
+                if (BoardUtils.IsMyColor(x, y))
+                {
+                    localPosition.Scores = 0;
                     return localPosition;
+                }
 
                 localPosition.Scores++;
 
@@ -275,8 +284,8 @@ namespace Services.Boards
 
             localPosition.X = x;
             localPosition.Y = y;
-            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoUpAndRight };
-            _forwardWalker.Count(localPosition, except);
+            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoUpAndRight };
+            _additionalDisksCounter.Count(localPosition, except);
 
             visitedPoints.Add(localPosition);
             return localPosition;
@@ -293,16 +302,17 @@ namespace Services.Boards
             byte x = (byte)(point.X + 1);
             while (y < _board.GetColumns && x < _board.GetRows)
             {
-                if (IsAlreadyPassed(x, y, out Point visitedPosition))
-                    return visitedPosition;
+                if (IsAlreadyVisited(x, y, out Point visitedPosition))
+                    return visitedPosition;                
 
-                var color = _board.GetColor(x, y);
-
-                if (IsEmpty(color))
+                if (BoardUtils.IsEmptyTile(x, y))
                     break;
 
-                if (!IsMyColor(color, localPosition))
+                if (BoardUtils.IsMyColor(x, y))
+                {
+                    localPosition.Scores = 0;
                     return localPosition;
+                }
 
                 localPosition.Scores++;
 
@@ -312,36 +322,19 @@ namespace Services.Boards
 
             localPosition.X = x;
             localPosition.Y = y;
-            var except = new List<Action<Point>>() { _forwardWalker.OnlyGoUpAndLeft };
-            _forwardWalker.Count(localPosition, except);
+            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoUpAndLeft };
+            _additionalDisksCounter.Count(localPosition, except);
 
             visitedPoints.Add(localPosition);
             return localPosition;
-        }
+        }   
 
-        private bool IsEmpty(Color color)
-        {
-            return color == Color.Empty;                
-        }
-
-        private bool IsMyColor(Color color, Point localBestPosition)
-        {
-            if (color == Color.Red)
-            {
-                localBestPosition.Scores = 0;
-                return false;
-            }
-            
-            return true;
-        }
-
-        private bool IsAlreadyPassed(byte x, byte y, out Point position)
+        private bool IsAlreadyVisited(byte x, byte y, out Point position)
         {
             position = visitedPoints.FirstOrDefault(p => p.X == x && p.Y == y);
             if (position == null)
                 return false;
-
-            counter++;
+            
             return true;
         }
     }

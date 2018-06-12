@@ -2,6 +2,7 @@
 using Contracts.Boards;
 using Contracts.Boards.Contracts;
 using Contracts.Boards.ViewModels;
+using Services.Boards.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -29,16 +30,15 @@ namespace Services.Boards
         {
             myPoints = new List<Point>();
             for(byte row = 0; row < board.GetRows; row++)
-                for(byte col = 0; col < board.GetColumns; col++)
-                {
+                for(byte col = 0; col < board.GetColumns; col++)                
                     if (board.GetColor(row, col) == Color.Red)
-                        myPoints.Add(new Point(row, col));
-                }
+                        myPoints.Add(new Point(row, col));                
         }
 
         public string GetBestPosition()
         {            
             var boardWalker = new BoardWalker(board, visitedPoints);
+            BoardUtils.SetBoard(board);
 
             var maxScores = 0;
             var bestPosition = "";

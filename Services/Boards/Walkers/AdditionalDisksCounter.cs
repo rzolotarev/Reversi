@@ -1,6 +1,7 @@
 ﻿using Contracts.Board.ViewModels;
 using Contracts.Boards;
 using Contracts.Boards.ViewModels;
+using Services.Boards.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,13 +13,13 @@ namespace Services.Boards.Walkers
     public class AdditionalDisksCounter
     {
         private readonly Board _board;
-
+        
         public AdditionalDisksCounter(Board board)
         {
             _board = board;
         }
 
-        public void Count(Point localBestPosition, IEnumerable<Action<Point>> except)
+        public void Count(Point localPosition, IEnumerable<Action<Point>> exceptOperations)
         {
             var actions = new List<Action<Point>>()
             {
@@ -32,210 +33,213 @@ namespace Services.Boards.Walkers
                 OnlyGoDownAndRight
             };
 
-            foreach (var action in actions.Except(except))
-                action(localBestPosition);
+            foreach (var action in actions.Except(exceptOperations))
+                action(localPosition);
         }
 
-        public void OnlyGoDown(Point localBestPosition)
+        public void OnlyGoDown(Point localPosition)
         {
-            if (localBestPosition.X == _board.GetRows - 1)
+            if (localPosition.X == _board.GetRows - 1)
                 return;
 
             byte x = 0;
-            for (x = (byte)(localBestPosition.X + 1); x < _board.GetRows; x++)
-            {
-                var color = _board.GetColor(x, localBestPosition.Y);
-
-                if (IsEmpty(color, localBestPosition))
+            for (x = (byte)(localPosition.X + 1); x < _board.GetRows; x++)
+            {                
+                if (BoardUtils.IsEmptyTile(x, localPosition.Y))
+                {
+                    localPosition.AdditionalScores = 0;
                     return;
+                }
 
-                if (!TryToScore(color, localBestPosition))
+                if (BoardUtils.IsMyColor(x, localPosition.Y))
                     break;
+
+                localPosition.AdditionalScores++;
             }
 
-            localBestPosition.Scores += localBestPosition.AdditionalScores;
-            localBestPosition.AdditionalScores = 0;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }
 
-        public void OnlyGoUp(Point localBestPosition)
+        public void OnlyGoUp(Point localPosition)
         {
-            if (localBestPosition.X == 0)
+            if (localPosition.X == 0)
                 return;
+
             byte x;
-            for (x = (byte)(localBestPosition.X - 1); x >= 0; x--)
-            {
-                var color = _board.GetColor(x, localBestPosition.Y);
-
-                if (IsEmpty(color, localBestPosition))
+            for (x = (byte)(localPosition.X - 1); x >= 0; x--)
+            {                
+                if (BoardUtils.IsEmptyTile(x, localPosition.Y))
+                {
+                    localPosition.AdditionalScores = 0;
                     return;
+                }
 
-                if (!TryToScore(color, localBestPosition))
+                if (BoardUtils.IsMyColor(x, localPosition.Y))
                     break;
+
+                localPosition.AdditionalScores++;
             }
 
-            localBestPosition.Scores += localBestPosition.AdditionalScores;
-            localBestPosition.AdditionalScores = 0;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }
 
-        public void OnlyGoLeft(Point localBestPosition)
+        public void OnlyGoLeft(Point localPosition)
         {
-            if (localBestPosition.Y == 0)
+            if (localPosition.Y == 0)
                 return;
 
-            for (byte y = (byte)(localBestPosition.Y - 1); y >= 0; y--)
+            for (byte y = (byte)(localPosition.Y - 1); y >= 0; y--)
             {
-                var color = _board.GetColor(localBestPosition.X, y);
+                var color = _board.GetColor(localPosition.X, y);
 
-                if (IsEmpty(color, localBestPosition))
+                if (BoardUtils.IsEmptyTile(localPosition.X, y))
+                {
+                    localPosition.AdditionalScores = 0;
                     return;
+                }
 
-                if (!TryToScore(color, localBestPosition))
+                if (BoardUtils.IsMyColor(localPosition.X, y))
                     break;
+
+                localPosition.AdditionalScores++;
             }
 
-            localBestPosition.Scores += localBestPosition.AdditionalScores;
-            localBestPosition.AdditionalScores = 0;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }
 
-        public void OnlyGoRight(Point localBestPosition)
+        public void OnlyGoRight(Point localPosition)
         {
-            if (localBestPosition.Y == _board.GetColumns - 1)
+            if (localPosition.Y == _board.GetColumns - 1)
                 return;
 
-            for (byte y = (byte)(localBestPosition.Y + 1); y < _board.GetColumns; y++)
-            {
-                var color = _board.GetColor(localBestPosition.X, y);
-
-                if (IsEmpty(color, localBestPosition))
+            for (byte y = (byte)(localPosition.Y + 1); y < _board.GetColumns; y++)
+            {                
+                if (BoardUtils.IsEmptyTile(localPosition.X, y))
+                {
+                    localPosition.AdditionalScores = 0;
                     return;
+                }
 
-                if (!TryToScore(color, localBestPosition))
+                if (BoardUtils.IsMyColor(localPosition.X, y))
                     break;
+
+                localPosition.AdditionalScores++;
             }
 
-            localBestPosition.Scores += localBestPosition.AdditionalScores;
-            localBestPosition.AdditionalScores = 0;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }   
         
-
-        public void OnlyGoUpAndLeft(Point localBestPosition)
+        public void OnlyGoUpAndLeft(Point localPosition)
         {           
-            if (localBestPosition.Y == 0 || localBestPosition.X == 0)
+            if (localPosition.Y == 0 || localPosition.X == 0)
                 return;
 
-            byte y = (byte)(localBestPosition.Y - 1);
-            byte x = (byte)(localBestPosition.X - 1);
+            byte y = (byte)(localPosition.Y - 1);
+            byte x = (byte)(localPosition.X - 1);
             while (y >= 0 && x >= 0)
-            {
-                var color = _board.GetColor(x, y);
-
-                if (IsEmpty(color, localBestPosition))
+            {                
+                if (BoardUtils.IsEmptyTile(x, y))
+                {
+                    localPosition.AdditionalScores = 0;
                     return;
+                }
 
-                if (!TryToScore(color, localBestPosition))
+                if (BoardUtils.IsMyColor(x, y))
                     break;
 
-                x--;
-                y--;
+                localPosition.AdditionalScores++;
+
+                x--; y--;
             }
 
-            localBestPosition.Scores += localBestPosition.AdditionalScores;
-            localBestPosition.AdditionalScores = 0;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }
 
-        public void OnlyGoUpAndRight(Point localBestPosition)
+        public void OnlyGoUpAndRight(Point localPosition)
         {
-            if (localBestPosition.Y == _board.GetColumns - 1 || localBestPosition.X == 0)
+            if (localPosition.Y == _board.GetColumns - 1 || localPosition.X == 0)
                 return;
 
-            byte y = (byte)(localBestPosition.Y + 1);
-            byte x = (byte)(localBestPosition.X - 1);
+            byte y = (byte)(localPosition.Y + 1);
+            byte x = (byte)(localPosition.X - 1);
             while (y < _board.GetColumns && x >= 0)
             {
-                var color = _board.GetColor(x, y);
-
-                if (IsEmpty(color, localBestPosition))
+                if (BoardUtils.IsEmptyTile(x, y))
+                {
+                    localPosition.AdditionalScores = 0;
                     return;
+                }
 
-                if (!TryToScore(color, localBestPosition))
+                if (BoardUtils.IsMyColor(x, y))
                     break;
 
-                x--;
-                y++;
+                localPosition.AdditionalScores++;
+
+                x--; y++;
             }
             
-            localBestPosition.Scores += localBestPosition.AdditionalScores;
-            localBestPosition.AdditionalScores = 0;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }
 
-        public void OnlyGoDownAndLeft(Point localBestPosition)
+        public void OnlyGoDownAndLeft(Point localPosition)
         {
-            if (localBestPosition.Y == 0 || localBestPosition.X == _board.GetRows - 1)
+            if (localPosition.Y == 0 || localPosition.X == _board.GetRows - 1)
                 return;
 
-            byte y = (byte)(localBestPosition.Y - 1);
-            byte x = (byte)(localBestPosition.X + 1);
+            byte y = (byte)(localPosition.Y - 1);
+            byte x = (byte)(localPosition.X + 1);
             while (y >= 0 && x < _board.GetRows)
-            {
-                var color = _board.GetColor(x, y);
-
-                if (IsEmpty(color, localBestPosition))
+            {                
+                if (BoardUtils.IsEmptyTile(x, y))
+                {
+                    localPosition.AdditionalScores = 0;
                     return;
+                }
 
-                if (!TryToScore(color, localBestPosition))
+                if (BoardUtils.IsMyColor(x, y))
                     break;
 
-                x++;
-                y--;
+                localPosition.AdditionalScores++;
+
+                x++; y--;
             }
 
-            localBestPosition.Scores += localBestPosition.AdditionalScores;
-            localBestPosition.AdditionalScores = 0;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }
 
-        public void OnlyGoDownAndRight(Point localBestPosition)
+        public void OnlyGoDownAndRight(Point localPosition)
         {
-            if (localBestPosition.Y == _board.GetColumns - 1 || localBestPosition.X == _board.GetRows - 1)
+            if (localPosition.Y == _board.GetColumns - 1 || localPosition.X == _board.GetRows - 1)
                 return;
 
-            byte y = (byte)(localBestPosition.Y + 1);
-            byte x = (byte)(localBestPosition.X + 1);
+            byte y = (byte)(localPosition.Y + 1);
+            byte x = (byte)(localPosition.X + 1);
 
             while (y < _board.GetColumns && x < _board.GetRows)
-            {
-                var color = _board.GetColor(x, y);
-
-                if (IsEmpty(color, localBestPosition))
+            {                
+                if (BoardUtils.IsEmptyTile(x, y))
+                {
+                    localPosition.AdditionalScores = 0;
                     return;
+                }
 
-                if (!TryToScore(color, localBestPosition))
+                if (BoardUtils.IsMyColor(x, y))
                     break;
+
+                localPosition.AdditionalScores++;
 
                 x++; y++;
             }
 
-            localBestPosition.Scores += localBestPosition.AdditionalScores;
-            localBestPosition.AdditionalScores = 0;
-        }
-        
-        private bool IsEmpty(Color color, Point localBestPosition)
-        {
-            if (color == Color.Empty)
-            {
-                localBestPosition.AdditionalScores = 0;
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool TryToScore(Color color, Point localBestPosition)
-        {
-            if (color == Color.Red)
-                return false;
-
-            localBestPosition.AdditionalScores++;                            
-            return true;
-        }
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
+        }            
     }
 }
