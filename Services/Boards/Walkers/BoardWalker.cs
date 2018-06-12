@@ -14,328 +14,235 @@ namespace Services.Boards
     public class BoardWalker
     {
         private readonly Board _board;
-        private readonly AdditionalDisksCounter _additionalDisksCounter;        
-
-        private List<Point> visitedPoints;        
+        private readonly List<Action<Point>> _actions;                      
 
         public BoardWalker(Board board, List<Point> visitedPoints)
         {                    
             _board = board;
-            this.visitedPoints = visitedPoints;
-            _additionalDisksCounter = new AdditionalDisksCounter(_board);            
-        }
-
-        public Point BestStep(Point currentPoint)
-        {
-            return new List<Point>() {
-                GoDown(currentPoint),
-                GoUp(currentPoint),
-                GoLeft(currentPoint),
-                GoRight(currentPoint),
-                GoUpAndLeft(currentPoint),
-                GoDownAndLeft(currentPoint),
-                GoUpAndRight(currentPoint),
-                GoDownAndRight(currentPoint),
-            }
-            .OrderByDescending(x => x.Scores).First();            
-        }
-
-        public Point GoDown(Point point)
-        {
-            var localPosition = new Point(0,0,0);
-            if (point.X == _board.GetRows - 1)
-                return localPosition;
-
-            byte x = 0;
-            for (x = (byte)(point.X + 1); x < _board.GetRows; x++)
+            _actions = new List<Action<Point>>()
             {
-                if (IsAlreadyVisited(x, point.Y, out Point visitedPosition))
-                    return visitedPosition;                
+                OnlyGoDown,
+                OnlyGoUp,
+                OnlyGoLeft,
+                OnlyGoRight,
+                OnlyGoUpAndLeft,
+                OnlyGoUpAndRight,
+                OnlyGoDownAndLeft,
+                OnlyGoDownAndRight
+            };
+        }
 
-                if (BoardUtils.IsEmptyTile(x, point.Y))
-                    break;
+        public Point CountScores(Point currentPoint)
+        {
+            var scoredPoint = new Point(currentPoint.X, currentPoint.Y);
 
-                if (BoardUtils.IsMyColor(x, point.Y))
+            foreach (var action in _actions)
+                action(scoredPoint);
+
+            return scoredPoint;
+        }
+
+        private void OnlyGoDown(Point localPosition)
+        {
+            if (localPosition.X == _board.GetRows - 1)
+                return;
+
+            for (var x = (byte)(localPosition.X + 1); x < _board.GetRows; x++)
+            {
+                if (BoardUtils.IsEmptyTile(x, localPosition.Y))
                 {
-                    localPosition.Scores = 0;
-                    return localPosition;
+                    localPosition.AdditionalScores = 0;
+                    return;
                 }
 
-                localPosition.Scores++;
-            }
-
-            localPosition.X = x;
-            localPosition.Y = point.Y;
-
-            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoUp };
-            _additionalDisksCounter.Count(localPosition, except);
-
-            visitedPoints.Add(localPosition);
-            return localPosition;
-        }
-
-        public Point GoUp(Point point)
-        {
-            var localPosition = new Point(0, 0, 0);
-
-            if (point.X == 0)
-                return localPosition;
-
-            byte x;
-            for (x = (byte)(point.X - 1); x >= 0; x--)
-            {
-                if (IsAlreadyVisited(x, point.Y, out Point visitedPosition))
-                    return visitedPosition;                
-
-                if (BoardUtils.IsEmptyTile(x, point.Y))
+                if (BoardUtils.IsMyColor(x, localPosition.Y))
                     break;
 
-                if (BoardUtils.IsMyColor(x, point.Y))
-                {
-                    localPosition.Scores = 0;
-                    return localPosition;
-                }
-
-                localPosition.Scores++;
+                localPosition.AdditionalScores++;
             }
 
-            localPosition.X = x;
-            localPosition.Y = point.Y;
-            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoDown };
-            _additionalDisksCounter.Count(localPosition, except);
-
-            visitedPoints.Add(localPosition);
-            return localPosition;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }
 
-        public Point GoLeft(Point point)
+        private void OnlyGoUp(Point localPosition)
         {
-            var localPosition = new Point(0, 0, 0);
+            if (localPosition.X == 0)
+                return;
 
-            if (point.Y == 0)
-                return localPosition;
-
-            byte y;
-            for (y = (byte)(point.Y - 1); y >= 0; y--)
+            for (var x = (byte)(localPosition.X - 1); x >= 0; x--)
             {
-                if (IsAlreadyVisited(point.X, y, out Point visitedPosition))
-                    return visitedPosition;                
+                if (BoardUtils.IsEmptyTile(x, localPosition.Y))
+                {
+                    localPosition.AdditionalScores = 0;
+                    return;
+                }
 
-                if (BoardUtils.IsEmptyTile(point.X, y))
+                if (BoardUtils.IsMyColor(x, localPosition.Y))
                     break;
 
-                if (BoardUtils.IsMyColor(point.X, y))
-                {
-                    localPosition.Scores = 0;
-                    return localPosition;
-                }
-
-                localPosition.Scores++;
+                localPosition.AdditionalScores++;
             }
 
-            localPosition.X = point.X;
-            localPosition.Y = y;
-
-            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoRight };
-            _additionalDisksCounter.Count(localPosition, except);
-
-            visitedPoints.Add(localPosition);
-            return localPosition;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }
 
-        public Point GoRight(Point point)
+        private void OnlyGoLeft(Point localPosition)
         {
-            var localPosition = new Point(0, 0, 0);
+            if (localPosition.Y == 0)
+                return;
 
-            if (point.Y == _board.GetColumns - 1)
-                return localPosition;
-
-            byte y;
-            for (y = (byte)(point.Y + 1); y < _board.GetColumns; y++)
+            for (var y = (byte)(localPosition.Y - 1); y >= 0; y--)
             {
-                if (IsAlreadyVisited(point.X, y, out Point visitedPosition))
-                    return visitedPosition;                
+                var color = _board.GetColor(localPosition.X, y);
 
-                if (BoardUtils.IsEmptyTile(point.X, y))
+                if (BoardUtils.IsEmptyTile(localPosition.X, y))
+                {
+                    localPosition.AdditionalScores = 0;
+                    return;
+                }
+
+                if (BoardUtils.IsMyColor(localPosition.X, y))
                     break;
 
-                if (BoardUtils.IsMyColor(point.X, y))
-                {
-                    localPosition.Scores = 0;
-                    return localPosition;
-                }
-
-                localPosition.Scores++;
+                localPosition.AdditionalScores++;
             }
 
-            localPosition.X = point.X;
-            localPosition.Y = y;
-            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoLeft };
-            _additionalDisksCounter.Count(localPosition, except);
-
-            visitedPoints.Add(localPosition);
-            return localPosition;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }
 
-        public Point GoUpAndLeft(Point point)
+        private void OnlyGoRight(Point localPosition)
         {
-            var localPosition = new Point(0,0,0);
+            if (localPosition.Y == _board.GetColumns - 1)
+                return;
 
-            if (point.Y == 0 || point.X == 0)
-                return localPosition;            
+            for (var y = (byte)(localPosition.Y + 1); y < _board.GetColumns; y++)
+            {
+                if (BoardUtils.IsEmptyTile(localPosition.X, y))
+                {
+                    localPosition.AdditionalScores = 0;
+                    return;
+                }
 
-            byte y = (byte)(point.Y - 1);
-            byte x = (byte)(point.X - 1);
+                if (BoardUtils.IsMyColor(localPosition.X, y))
+                    break;
+
+                localPosition.AdditionalScores++;
+            }
+
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
+        }
+
+        private void OnlyGoUpAndLeft(Point localPosition)
+        {
+            if (localPosition.Y == 0 || localPosition.X == 0)
+                return;
+
+            byte y = (byte)(localPosition.Y - 1);
+            byte x = (byte)(localPosition.X - 1);
             while (y >= 0 && x >= 0)
             {
-                if (IsAlreadyVisited(x, y, out Point visitedPosition))
-                    return visitedPosition;                
-
                 if (BoardUtils.IsEmptyTile(x, y))
-                    break;
-
-                if (BoardUtils.IsMyColor(x, y))
                 {
-                    localPosition.Scores = 0;
-                    return localPosition;
+                    localPosition.AdditionalScores = 0;
+                    return;
                 }
 
-                localPosition.Scores++;
+                if (BoardUtils.IsMyColor(x, y))
+                    break;
 
-                x--;
-                y--;
+                localPosition.AdditionalScores++;
+
+                x--; y--;
             }
 
-            localPosition.X = x;
-            localPosition.Y = y;
-            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoDownAndRight };
-            _additionalDisksCounter.Count(localPosition, except);
-
-            visitedPoints.Add(localPosition);
-            return localPosition;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }
 
-        public Point GoUpAndRight(Point point)
+        private void OnlyGoUpAndRight(Point localPosition)
         {
-            var localPosition = new Point(0, 0, 0);
+            if (localPosition.Y == _board.GetColumns - 1 || localPosition.X == 0)
+                return;
 
-            if (point.Y == _board.GetColumns - 1 || point.X == 0)
-                return localPosition;            
-
-            byte y = (byte)(point.Y + 1);
-            byte x = (byte)(point.X - 1);
+            byte y = (byte)(localPosition.Y + 1);
+            byte x = (byte)(localPosition.X - 1);
             while (y < _board.GetColumns && x >= 0)
             {
-                if (IsAlreadyVisited(x, y, out Point visitedPosition))
-                    return visitedPosition;                
-
                 if (BoardUtils.IsEmptyTile(x, y))
-                    break;
-
-                if (BoardUtils.IsMyColor(x, y))
                 {
-                    localPosition.Scores = 0;
-                    return localPosition;
+                    localPosition.AdditionalScores = 0;
+                    return;
                 }
 
-                localPosition.Scores++;
+                if (BoardUtils.IsMyColor(x, y))
+                    break;
 
-                x--;
-                y++;
+                localPosition.AdditionalScores++;
+
+                x--; y++;
             }
 
-            localPosition.X = x;
-            localPosition.Y = y;
-            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoDownAndLeft };
-            _additionalDisksCounter.Count(localPosition, except);
-            
-            visitedPoints.Add(localPosition);
-            return localPosition;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }
 
-        public Point GoDownAndLeft(Point point)
+        private void OnlyGoDownAndLeft(Point localPosition)
         {
-            var localPosition = new Point(0,0,0);
+            if (localPosition.Y == 0 || localPosition.X == _board.GetRows - 1)
+                return;
 
-            if (point.Y == 0 || point.X == _board.GetRows - 1)
-                return localPosition;            
-
-            byte y = (byte)(point.Y - 1);
-            byte x = (byte)(point.X + 1);
+            byte y = (byte)(localPosition.Y - 1);
+            byte x = (byte)(localPosition.X + 1);
             while (y >= 0 && x < _board.GetRows)
             {
-                if (IsAlreadyVisited(x, y, out Point visitedPosition))
-                    return visitedPosition;
-                
                 if (BoardUtils.IsEmptyTile(x, y))
-                    break;
-
-                if (BoardUtils.IsMyColor(x, y))
                 {
-                    localPosition.Scores = 0;
-                    return localPosition;
+                    localPosition.AdditionalScores = 0;
+                    return;
                 }
 
-                localPosition.Scores++;
+                if (BoardUtils.IsMyColor(x, y))
+                    break;
 
-                x++;
-                y--;
+                localPosition.AdditionalScores++;
+
+                x++; y--;
             }
 
-            localPosition.X = x;
-            localPosition.Y = y;
-            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoUpAndRight };
-            _additionalDisksCounter.Count(localPosition, except);
-
-            visitedPoints.Add(localPosition);
-            return localPosition;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }
 
-        public Point GoDownAndRight(Point point)
+        private void OnlyGoDownAndRight(Point localPosition)
         {
-            var localPosition = new Point(0, 0, 0);
+            if (localPosition.Y == _board.GetColumns - 1 || localPosition.X == _board.GetRows - 1)
+                return;
 
-            if (point.Y == _board.GetColumns - 1 || point.X == _board.GetRows - 1)
-                return localPosition;            
+            byte y = (byte)(localPosition.Y + 1);
+            byte x = (byte)(localPosition.X + 1);
 
-            byte y = (byte)(point.Y + 1);
-            byte x = (byte)(point.X + 1);
             while (y < _board.GetColumns && x < _board.GetRows)
             {
-                if (IsAlreadyVisited(x, y, out Point visitedPosition))
-                    return visitedPosition;                
-
                 if (BoardUtils.IsEmptyTile(x, y))
-                    break;
-
-                if (BoardUtils.IsMyColor(x, y))
                 {
-                    localPosition.Scores = 0;
-                    return localPosition;
+                    localPosition.AdditionalScores = 0;
+                    return;
                 }
 
-                localPosition.Scores++;
+                if (BoardUtils.IsMyColor(x, y))
+                    break;
 
-                x++;
-                y++;
+                localPosition.AdditionalScores++;
+
+                x++; y++;
             }
 
-            localPosition.X = x;
-            localPosition.Y = y;
-            var except = new List<Action<Point>>() { _additionalDisksCounter.OnlyGoUpAndLeft };
-            _additionalDisksCounter.Count(localPosition, except);
-
-            visitedPoints.Add(localPosition);
-            return localPosition;
-        }   
-
-        private bool IsAlreadyVisited(byte x, byte y, out Point position)
-        {
-            position = visitedPoints.FirstOrDefault(p => p.X == x && p.Y == y);
-            if (position == null)
-                return false;
-            
-            return true;
+            localPosition.Scores += localPosition.AdditionalScores;
+            localPosition.AdditionalScores = 0;
         }
     }
 }

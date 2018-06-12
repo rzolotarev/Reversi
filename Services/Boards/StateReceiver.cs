@@ -12,8 +12,7 @@ using System.Threading.Tasks;
 namespace Services.Boards
 {
     public class StateReceiver : IStateReceiver
-    {
-        private List<Point> myPoints { get; set; }
+    {        
         private Board board { get; set; }
         private List<Point> visitedPoints { get; set; }
 
@@ -22,38 +21,27 @@ namespace Services.Boards
         {
             board = initializedBoard;
             visitedPoints = new List<Point>();
-
-            FindMyPoints();            
         }
-
-        private void FindMyPoints()
-        {
-            myPoints = new List<Point>();
-            for(byte row = 0; row < board.GetRows; row++)
-                for(byte col = 0; col < board.GetColumns; col++)                
-                    if (board.GetColor(row, col) == Color.Red)
-                        myPoints.Add(new Point(row, col));                
-        }
-
+      
         public string GetBestPosition()
         {            
             var boardWalker = new BoardWalker(board, visitedPoints);
             BoardUtils.SetBoard(board);
-
+            var possiblePositions = BoardUtils.GetPossiblePosition();
             var maxScores = 0;
-            var bestPosition = "";
+            Point bestPosition = null;
 
-            myPoints.ForEach(myPoint => 
+            possiblePositions.ForEach(possiblePosition => 
             {
-                var localMaxPoint = boardWalker.BestStep(myPoint);
-                if (localMaxPoint.Scores > maxScores)
+                var currentPossiblePosition = boardWalker.CountScores(possiblePosition);
+                if (currentPossiblePosition.Scores > maxScores)
                 {
-                    maxScores = localMaxPoint.Scores;
-                    bestPosition = $"{NumberToString(localMaxPoint.Y + 1, true)}{localMaxPoint.X + 1}";
-                }
+                    maxScores = currentPossiblePosition.Scores;
+                    bestPosition = currentPossiblePosition;                    
+                }               
             });
 
-            return bestPosition;
+            return $"{NumberToString(bestPosition.Y + 1, true)}{bestPosition.X + 1}"; ;
         }
 
         private string NumberToString(int number, bool isCaps)

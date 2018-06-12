@@ -19,7 +19,7 @@ namespace Services.Boards.Walkers
             _board = board;
         }
 
-        public void Count(Point localPosition, IEnumerable<Action<Point>> exceptOperations)
+        public void Count(Point localPosition)
         {
             var actions = new List<Action<Point>>()
             {
@@ -33,7 +33,7 @@ namespace Services.Boards.Walkers
                 OnlyGoDownAndRight
             };
 
-            foreach (var action in actions.Except(exceptOperations))
+            foreach (var action in actions)
                 action(localPosition);
         }
 
