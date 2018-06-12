@@ -41,9 +41,8 @@ namespace Services.Boards.Walkers
         {
             if (localPosition.X == _board.GetRows - 1)
                 return;
-
-            byte x = 0;
-            for (x = (byte)(localPosition.X + 1); x < _board.GetRows; x++)
+            
+            for (var x = (byte)(localPosition.X + 1); x < _board.GetRows; x++)
             {                
                 if (BoardUtils.IsEmptyTile(x, localPosition.Y))
                 {
@@ -65,9 +64,8 @@ namespace Services.Boards.Walkers
         {
             if (localPosition.X == 0)
                 return;
-
-            byte x;
-            for (x = (byte)(localPosition.X - 1); x >= 0; x--)
+            
+            for (var x = (byte)(localPosition.X - 1); x >= 0; x--)
             {                
                 if (BoardUtils.IsEmptyTile(x, localPosition.Y))
                 {
@@ -90,7 +88,7 @@ namespace Services.Boards.Walkers
             if (localPosition.Y == 0)
                 return;
 
-            for (byte y = (byte)(localPosition.Y - 1); y >= 0; y--)
+            for (var y = (byte)(localPosition.Y - 1); y >= 0; y--)
             {
                 var color = _board.GetColor(localPosition.X, y);
 
@@ -115,7 +113,7 @@ namespace Services.Boards.Walkers
             if (localPosition.Y == _board.GetColumns - 1)
                 return;
 
-            for (byte y = (byte)(localPosition.Y + 1); y < _board.GetColumns; y++)
+            for (var y = (byte)(localPosition.Y + 1); y < _board.GetColumns; y++)
             {                
                 if (BoardUtils.IsEmptyTile(localPosition.X, y))
                 {
