@@ -2,7 +2,6 @@
 using Contracts.Boards;
 using Contracts.Boards.ViewModels;
 using Services.Boards.Utils;
-using Services.Boards.Walkers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
